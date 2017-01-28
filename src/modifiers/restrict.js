@@ -10,8 +10,8 @@ const restrict = {
     elementRect: null,
   },
 
-  setOffset: function (interaction, interactable, element, rect, startOffset) {
-    const elementRect = interactable.options[interaction.prepared.name].restrict.elementRect;
+  setOffset: function ({ rect, startOffset, options }) {
+    const elementRect = options && options.elementRect;
     const offset = {};
 
     if (rect && elementRect) {
@@ -28,10 +28,9 @@ const restrict = {
     return offset;
   },
 
-  set: function (pageCoords, interaction, status) {
+  set: function ({ pageCoords, interaction, status, options }) {
     const target    = interaction.target;
-    const restrictOptions  = target && target.options[interaction.prepared.name].restrict;
-    let restriction = restrictOptions && restrictOptions.restriction;
+    let restriction = options && options.restriction;
 
     if (!restriction) {
       return status;
@@ -97,21 +96,9 @@ const restrict = {
 
     status.modifiedX = modifiedX;
     status.modifiedY = modifiedY;
-
-    return status;
   },
 
-  reset: function (status) {
-    status.dx = status.dy = 0;
-    status.modifiedX = status.modifiedY = NaN;
-    status.locked = false;
-    status.changed = true;
-
-    return status;
-  },
-
-  modifyCoords: function (page, client, interactable, status, actionName, phase) {
-    const options = interactable.options[actionName].restrict;
+  modifyCoords: function ({ page, client, status, phase, options }) {
     const elementRect = options && options.elementRect;
 
     if (options && options.enabled

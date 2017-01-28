@@ -27,11 +27,9 @@ const restrictEdges = {
     offset: null,
   },
 
-  setOffset: function (interaction, interactable, element, rect, startOffset) {
-    const options = interactable.options[interaction.prepared.name].restrictEdges;
-
+  setOffset: function ({ interaction, startOffset, options }) {
     if (!options) {
-      return;
+      return utils.extend({}, startOffset);
     }
 
     const offset = getRestrictionRect(offset, interaction);
@@ -48,17 +46,11 @@ const restrictEdges = {
     return startOffset;
   },
 
-  set: function (pageCoords, interaction, status) {
-    if (!interaction.interacting()) {
-      return status;
-    }
-
-    const target  = interaction.target;
-    const options = status.options || target && target.options[interaction.prepared.name].restrictEdges;
+  set: function ({ pageCoords, interaction, status, offset, options }) {
     const edges = interaction.prepared.linkedEdges || interaction.prepared.edges;
 
-    if (!options.enabled || !edges) {
-      return status;
+    if (!interaction.interacting() || !edges) {
+      return;
     }
 
     const page = status.useStatusXY
@@ -66,7 +58,6 @@ const restrictEdges = {
       : utils.extend({}, pageCoords);
     const min = rectUtils.xywhToTlbr(getRestrictionRect(options.min, interaction)) || noMin;
     const max = rectUtils.xywhToTlbr(getRestrictionRect(options.max, interaction)) || noMax;
-    const offset = interaction.modifierOffsets.restrictEdges;
 
     let modifiedX = page.x;
     let modifiedY = page.y;
@@ -98,23 +89,9 @@ const restrictEdges = {
     status.modifiedY = modifiedY;
 
     //console.log(status.dx, status.modifiedX, status.changed, status.locked);
-
-    return status;
   },
 
-  reset: function (status) {
-    status.dx = status.dy = 0;
-    status.modifiedX = status.modifiedY = NaN;
-    status.locked = false;
-    status.changed = true;
-    status.options = null;
-
-    return status;
-  },
-
-  modifyCoords: function (page, client, interactable, status, actionName, phase) {
-    const options = status.options || interactable.options[actionName].restrictEdges;
-
+  modifyCoords: function ({ page, client, status, phase, options }) {
     if (options && options.enabled
         && !(phase === 'start' && status.locked)) {
 
